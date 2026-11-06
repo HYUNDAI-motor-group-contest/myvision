@@ -1,0 +1,81 @@
+name: Web CI
+
+# 바꿀 값은 아래 env 한 곳에 모았다(WEB_DIR, NODE_VERSION).
+# job 이름 lint-and-build를 Rulesets 필수 체크로 건다. 웹 앱이 레포 루트에 있으면 filters를 '**'로 바꾼다.
+#
+# 왜 이렇게 만들었나
+# - PR에서는 항상 시작하고 job 안에서 경로를 본다. 경로 필터로 아예 안 돌면 필수 체크가 영원히 대기한다.
+# - 공개 빌드에 박히는 값(NEXT_PUBLIC_* 등)은 job env에 가짜 값으로 둔다. 진짜 비밀은 CI에 넣지 않아도 빌드된다.
+# - check-latest로 러너 캐시가 아니라 최신 보안 패치를 받는다.
+# - 빌드, e2e가 느리면 커밋 훅이 아니라 여기서 막는다. 커밋 전 훅은 빠른 검사만 돈다.
+# - pnpm 판은 $WEB_DIR/package.json의 packageManager에서 읽는다. test:unit, test:e2e 스크립트가 없으면 해당 단계를 지운다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  WEB_DIR: frontend
+  NODE_VERSION: "22"
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read  # paths-filter가 PR 변경 파일을 API로 읽는다
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            web:
+              - '${{ env.WEB_DIR }}/**'
+              - '.github/workflows/web-ci.yml'
+
+  lint-and-build:
+    needs: changes
+    if: ${{ needs.changes.outputs.web == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ${{ env.WEB_DIR }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: ${{ env.WEB_DIR }}/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: ${{ env.WEB_DIR }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests (문구 검사 포함)
+        run: pnpm test:unit
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E
+        run: pnpm test:e2e

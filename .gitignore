@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_*
+.DS_Store
+__pycache__/
+node_modules/
+*.playbook-new
