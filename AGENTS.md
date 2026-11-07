@@ -16,7 +16,9 @@
 혼자 하는 프로젝트라 블록 담당은 모두 최중현. `schema/`는 두지 않는다(블록 사이 계약은 `alert/`의 Kotlin 타입).
 - `app/` — Android 앱 모듈(패키지 `app.myvision`, Kotlin, Compose, minSdk 28, compile/target 35).
   - `app/src/main/java/app/myvision/alert/` — 주행 중 경고 판단 엔진. **Android, Pleos SDK import 금지**(순수 Kotlin, 단위 테스트로 검증). 결정론 규칙, LLM 없음.
-  - 그 밖의 `app.myvision` — 화면(Compose), Pleos SDK 연결(Vehicle, NaviHelper, TextToSpeech).
+  - `app/src/main/java/app/myvision/domain/` — 운전자 전환(복원 계획, 기어 P 안전 규칙, 브리핑 문장). `alert/`와 같이 Android, Pleos SDK import 금지.
+  - `app/src/main/java/app/myvision/data/` — `VehicleGateway`(Pleos 구현, 테스트용 Fake는 test에), 프로필 기기 저장, TTS.
+  - 그 밖의 `app.myvision` — 화면(Compose, `ui/`), Pleos SDK 연결(Vehicle, NaviHelper, TextToSpeech).
 - `gradle/libs.versions.toml` — 의존성 판 원본. Pleos Maven은 `settings.gradle.kts`에만 등록.
 - `apk/` — 제출용 release APK 하나(`최중현_MyVision_release.apk`)만.
 - `docs/contest/` — 평가표 대응(eval-map), 제출 체크리스트, 3분 시연 시나리오.

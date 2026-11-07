@@ -10,6 +10,12 @@
     <uses-permission android:name="pleos.car.permission.CONTROL_CAR_CLIMATE" />
     <uses-permission android:name="pleos.car.permission.CAR_SPEED" />
     <uses-permission android:name="pleos.car.permission.CAR_ENERGY" />
+    <!-- 장면 ①: 기어, 주행 가능 거리(Gear, Odometer → CAR_DRIVE), 경고등(Safety → CAR_SAFETY).
+         SDK 구현 클래스의 RequiresCustomPermission과 pleos-sample-vehicle-app 매니페스트에서 확인 -->
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
+    <uses-permission android:name="pleos.car.permission.CAR_SAFETY" />
+    <!-- 탑승 브리핑 음성: TextToSpeech 3.3.1의 @RequiresPermission(lint MissingPermission이 알려 준 이름) -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
     <uses-permission android:name="pleos.car.permission.NAVI_CUSTOM_ROUTE" />
 
