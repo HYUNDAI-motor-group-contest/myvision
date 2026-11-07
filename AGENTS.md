@@ -31,7 +31,7 @@
 - 한 번에(CI와 같음): `./gradlew lint testDebugUnitTest assembleDebug`
 
 ## 개발 환경
-- 빌드, 테스트: WSL. 도구는 `~/opt`에만(JDK 17 Temurin, Android 명령줄 도구와 platform 35, build-tools 35.0.0, Gradle 캐시). sudo, 시스템 패키지, 셸 기본 JDK 변경 금지.
+- 빌드, 테스트: WSL. 도구는 저장소 옆 `../opt`(`~/hmg-contest/opt`)에만(JDK 17 Temurin, Android 명령줄 도구와 platform 35, build-tools 35.0.0, Gradle 캐시). sudo, 시스템 패키지, 셸 기본 JDK 변경 금지.
 - 에뮬레이터: Windows Android Studio의 Pleos Connect Emulator 2.1.0(API 34 이미지). 사람이 설치, 실행한다.
 - 설치: WSL에서 Windows adb로. `ADB=/mnt/c/Users/<Windows 사용자>/AppData/Local/Android/Sdk/platform-tools/adb.exe; "$ADB" install -r "$(wslpath -w app/build/outputs/apk/debug/app-debug.apk)"`
 - Virtual Console(시트, 공조, 도어, 경고등, 배터리, 기어): `"$ADB" forward tcp:8088 tcp:8088` 후 http://127.0.0.1:8088/ . 내비 모의 주행, 카메라 이벤트 주입 방법은 문서에 없음(미정).
