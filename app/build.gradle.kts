@@ -16,10 +16,23 @@ android {
         versionName = "0.1.0"
     }
 
+    // release 서명: keystore와 비밀번호는 저장소 밖에 둔다(공개 저장소).
+    // 값은 Gradle 사용자 설정(GRADLE_USER_HOME/gradle.properties)이나 환경변수 ORG_GRADLE_PROJECT_MYVISION_*에서 읽는다.
+    // 값이 없으면(CI, 새 클론) 서명 설정 없이 빌드된다(assembleRelease는 unsigned APK)
+    val keystore = providers.gradleProperty("MYVISION_KEYSTORE").orNull
+    signingConfigs {
+        if (keystore != null) create("release") {
+            storeFile = file(keystore)
+            storePassword = providers.gradleProperty("MYVISION_KEYSTORE_PASSWORD").get()
+            keyAlias = providers.gradleProperty("MYVISION_KEY_ALIAS").get()
+            keyPassword = storePassword // PKCS12는 저장소와 키 비밀번호가 같다
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
-            // release 서명은 범위 밖. 실값은 저장소에 두지 않는다(*.jks, *.keystore는 .gitignore)
+            isMinifyEnabled = false // 기기 검증 전이라 R8을 켜지 않는다
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     compileOptions {
