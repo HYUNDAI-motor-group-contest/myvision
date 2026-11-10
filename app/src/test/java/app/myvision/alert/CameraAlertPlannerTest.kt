@@ -112,6 +112,13 @@ class CameraAlertPlannerTest {
         assertNull(planner.plan(cam(-5, id = "z"), Sensitivity.NORMAL))
     }
 
+    @Test fun `민감도 저장값 - 없거나 모르는 값은 기본, 이름이 맞으면 그 값`() {
+        assertEquals(Sensitivity.NORMAL, Sensitivity.fromStored(null))
+        assertEquals(Sensitivity.NORMAL, Sensitivity.fromStored("ALWAYS"))
+        assertEquals(Sensitivity.NORMAL, Sensitivity.fromStored("NORMAL"))
+        assertEquals(Sensitivity.OFTEN_MISSES, Sensitivity.fromStored(Sensitivity.OFTEN_MISSES.name))
+    }
+
     @Test fun `화면 표시 - 첫 안내 거리 안이거나 구간 안일 때만`() {
         assertFalse(planner.shows(cam(501), Sensitivity.NORMAL))
         assertTrue(planner.shows(cam(500), Sensitivity.NORMAL))
