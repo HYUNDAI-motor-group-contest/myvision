@@ -42,12 +42,13 @@ fun ProfileScreen(
                 ) {
                     Column {
                         Text(p.name, style = MaterialTheme.typography.displaySmall)
+                        Text("카메라 안내 ${p.sensitivity.label}", style = MaterialTheme.typography.titleMedium)
                         if (selected) Text("선택됨", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
         }
-        Text("프로필 이름은 예시예요", style = MaterialTheme.typography.bodyLarge)
+        Text("프로필 이름과 카메라 안내 설정은 예시예요", style = MaterialTheme.typography.bodyLarge)
         if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.headlineSmall)
         if (parked && selectedId != null) {
             Button(onClick = onSaveCurrent, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {

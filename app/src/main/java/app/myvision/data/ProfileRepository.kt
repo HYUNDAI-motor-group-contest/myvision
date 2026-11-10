@@ -2,6 +2,7 @@ package app.myvision.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import app.myvision.alert.Sensitivity
 import app.myvision.domain.CabinSettings
 import app.myvision.domain.Profile
 
@@ -9,7 +10,7 @@ import app.myvision.domain.Profile
 class ProfileRepository(context: Context) {
     private val prefs = context.getSharedPreferences("profiles", Context.MODE_PRIVATE)
 
-    fun load(): List<Profile> = EXAMPLE_PROFILES.map { (id, name) ->
+    fun load(): List<Profile> = EXAMPLE_PROFILES.map { (id, name, sensitivity) ->
         Profile(
             id, name,
             CabinSettings(
@@ -19,6 +20,7 @@ class ProfileRepository(context: Context) {
                 seatHeat = get(id, "seatHeat") { getInt(it, 0) },
                 seatVent = get(id, "seatVent") { getInt(it, 0) },
             ),
+            sensitivity,
         )
     }
 
@@ -40,7 +42,11 @@ class ProfileRepository(context: Context) {
     }
 
     companion object {
-        /** 이름은 예시 데이터(화면에 "예시"로 표시). */
-        val EXAMPLE_PROFILES = listOf("dad" to "아빠", "mom" to "엄마", "me" to "나")
+        /** 이름, 카메라 안내 민감도는 예시 데이터(화면에 "예시"로 표시). shortcut: 민감도는 고정값, 바꾸는 화면이 필요해지면 SharedPreferences에 저장한다 */
+        val EXAMPLE_PROFILES = listOf(
+            Triple("dad", "아빠", Sensitivity.NORMAL),
+            Triple("mom", "엄마", Sensitivity.NORMAL),
+            Triple("me", "나", Sensitivity.OFTEN_MISSES),
+        )
     }
 }

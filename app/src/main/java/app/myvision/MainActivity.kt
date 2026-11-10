@@ -12,18 +12,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.lifecycle.lifecycleScope
+import app.myvision.alert.CameraInfo
+import app.myvision.alert.Sensitivity
+import app.myvision.data.CameraAlertRelay
 import app.myvision.data.DriverSwitcher
+import app.myvision.data.PleosCameraAlertSource
 import app.myvision.data.PleosVehicleGateway
 import app.myvision.data.ProfileRepository
 import app.myvision.data.Speaker
 import app.myvision.data.SwitchResult
 import app.myvision.domain.Gear
+import app.myvision.ui.CameraPanel
 import app.myvision.ui.ProfileScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var vehicle: PleosVehicleGateway
     private lateinit var speaker: Speaker
+    private lateinit var cameras: PleosCameraAlertSource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +42,16 @@ class MainActivity : ComponentActivity() {
         var selectedId by mutableStateOf<String?>(null)
         var status by mutableStateOf("")
         var parked by mutableStateOf(false)
+        var camera by mutableStateOf<CameraInfo?>(null)
+
+        // 장면 ②: 선택된 운전자의 민감도로 단속 카메라를 소리 먼저 안내한다(운전자 미선택이면 기본)
+        val relay = CameraAlertRelay(
+            sensitivity = { profiles.firstOrNull { it.id == selectedId }?.sensitivity ?: Sensitivity.NORMAL },
+            speak = speaker::speak,
+        )
+        cameras = PleosCameraAlertSource(this)
+        // 콜백 스레드를 모르므로(추정) 판단과 화면 갱신은 메인에서 순서대로
+        cameras.start { alerts -> lifecycleScope.launch { camera = relay.onAlerts(alerts) } }
 
         lifecycleScope.launch { parked = vehicle.snapshot().gear == Gear.PARK }
         vehicle.observeGear { gear ->
@@ -49,7 +65,8 @@ class MainActivity : ComponentActivity() {
             // DESIGN.md: 다크 테마 기본
             MaterialTheme(colorScheme = darkColorScheme()) {
                 Surface(Modifier.fillMaxSize()) {
-                    ProfileScreen(
+                    // 안내 중에는 카메라 정보만 보인다(DESIGN.md: 주행 중 정보 2개 이하)
+                    camera?.let { CameraPanel(it) } ?: ProfileScreen(
                         profiles = profiles,
                         selectedId = selectedId,
                         status = status,
@@ -78,6 +95,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        cameras.release()
         vehicle.release()
         speaker.release()
         super.onDestroy()

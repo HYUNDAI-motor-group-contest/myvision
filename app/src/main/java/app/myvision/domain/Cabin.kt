@@ -1,5 +1,7 @@
 package app.myvision.domain
 
+import app.myvision.alert.Sensitivity
+
 // 장면 ① 운전자 전환의 순수 Kotlin 모델. Android, Pleos SDK import 금지(단위 테스트로 검증).
 // null = 읽지 못했거나 프로필에 저장하지 않은 값(결측). 값을 지어 채우지 않는다.
 
@@ -12,7 +14,13 @@ data class CabinSettings(
     val seatVent: Int? = null,
 )
 
-data class Profile(val id: String, val name: String, val settings: CabinSettings = CabinSettings())
+/** sensitivity: 단속 카메라 안내 민감도(장면 ②). */
+data class Profile(
+    val id: String,
+    val name: String,
+    val settings: CabinSettings = CabinSettings(),
+    val sensitivity: Sensitivity = Sensitivity.NORMAL,
+)
 
 enum class Gear { PARK, NOT_PARK, UNKNOWN }
 
