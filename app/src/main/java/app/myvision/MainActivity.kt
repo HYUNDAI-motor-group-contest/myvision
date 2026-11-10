@@ -24,6 +24,8 @@ import app.myvision.data.SwitchResult
 import app.myvision.domain.Gear
 import app.myvision.ui.CameraPanel
 import app.myvision.ui.ProfileScreen
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -51,7 +53,15 @@ class MainActivity : ComponentActivity() {
         )
         cameras = PleosCameraAlertSource(this)
         // 콜백 스레드를 모르므로(추정) 판단과 화면 갱신은 메인에서 순서대로
-        cameras.start { alerts -> lifecycleScope.launch { camera = relay.onAlerts(alerts) } }
+        var staleTimer: Job? = null
+        cameras.start { alerts ->
+            lifecycleScope.launch {
+                camera = relay.onAlerts(alerts)
+                // 빈 목록이 오지 않아도 갱신이 끊기면 패널을 내린다(시계는 화면 층에만, 판단 로직은 결정론 유지)
+                staleTimer?.cancel()
+                staleTimer = launch { delay(CAMERA_STALE_MS); camera = null }
+            }
+        }
 
         lifecycleScope.launch { parked = vehicle.snapshot().gear == Gear.PARK }
         vehicle.observeGear { gear ->
@@ -92,6 +102,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private companion object {
+        const val CAMERA_STALE_MS = 10_000L // 설계값. 내비 이벤트 주기는 문서에 없음(추정 1초 안팎)
     }
 
     override fun onDestroy() {

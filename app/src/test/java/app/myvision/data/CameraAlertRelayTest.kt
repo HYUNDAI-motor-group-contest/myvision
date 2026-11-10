@@ -54,6 +54,16 @@ class CameraAlertRelayTest {
         assertEquals("a", shown?.id)
     }
 
+    @Test fun `지나간 카메라는 남은 거리 0이면 화면에서 내리고, 목록에서 빠지면 기록을 지운다`() {
+        source.emit(cam("a", 480))
+        source.emit(cam("a", 0))
+        assertNull(shown)
+
+        source.emit(cam("b", 900)) // a가 목록에서 빠짐
+        source.emit(cam("a", 450)) // 같은 id가 다시 오면 새 카메라로 안내
+        assertEquals(listOf("500m 앞 단속 카메라, 제한 80.", "450m 앞 단속 카메라, 제한 80."), spoken)
+    }
+
     @Test fun `release 뒤에는 이벤트를 받지 않는다`() {
         source.release()
         source.emit(cam("a", 480))

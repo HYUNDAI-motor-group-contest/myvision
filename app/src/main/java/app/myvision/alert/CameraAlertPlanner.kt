@@ -31,16 +31,20 @@ data class Announcement(val text: String, val atMeters: Int, val isRepeat: Boole
 class CameraAlertPlanner {
     private class Seen(var nearest: Int = Int.MAX_VALUE, var wasOver: Boolean = false, var overAlerts: Int = 0, var spoken: Boolean = false)
 
-    // shortcut: 지나간 카메라 상태를 지우지 않는다(한 번 주행에 수십 개 수준). 장시간 주행에서 문제가 되면 경로 종료 때 비운다
     private val seen = HashMap<String, Seen>()
 
-    /** 지금 화면에 보여 줄 카메라인가(첫 안내 거리 안이거나 구간 안). */
+    /** 지금 화면에 보여 줄 카메라인가(남은 거리가 있고, 첫 안내 거리 안이거나 구간 안). */
     fun shows(c: CameraInfo, s: Sensitivity): Boolean =
-        c.kind == CameraKind.SECTION || c.remainDistance in 1..s.distances.max()
+        c.remainDistance > 0 && (c.kind == CameraKind.SECTION || c.remainDistance <= s.distances.max())
+
+    /** 이번 목록에 없는(지나간) 카메라 기록을 지운다. 같은 카메라가 다시 오면 처음부터 안내한다. */
+    fun forgetExcept(current: List<CameraInfo>) {
+        seen.keys.retainAll(current.map(::key).toSet())
+    }
 
     /** 이번 이벤트에 말할 안내. 없으면 null. */
     fun plan(c: CameraInfo, s: Sensitivity): Announcement? {
-        val st = seen.getOrPut("${c.id}/${c.kind}") { Seen() }
+        val st = seen.getOrPut(key(c)) { Seen() }
         val section = c.kind == CameraKind.SECTION
         val over = if (section) c.isOverSectionAvgSpeed else c.isOverSpeed
         val becameOver = over && !st.wasOver // 넘는 순간에만(계속 과속이어도 반복하지 않는다)
@@ -71,6 +75,8 @@ class CameraAlertPlanner {
         val what = if (c.kind == CameraKind.SECTION_START) "구간단속 시작" else "단속 카메라"
         return "${meters}m 앞 $what${limit(c)}." + if (over) " 지금 제한 속도를 넘었어요." else ""
     }
+
+    private fun key(c: CameraInfo) = "${c.id}/${c.kind}"
 
     private fun limit(c: CameraInfo) = if (c.speedLimit > 0) ", 제한 ${c.speedLimit}" else ""
 }

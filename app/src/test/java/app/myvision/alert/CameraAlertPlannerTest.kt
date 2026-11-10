@@ -118,5 +118,18 @@ class CameraAlertPlannerTest {
         assertTrue(planner.shows(cam(501), Sensitivity.OFTEN_MISSES))
         assertFalse(planner.shows(cam(0), Sensitivity.NORMAL))
         assertTrue(planner.shows(cam(9000, kind = CameraKind.SECTION), Sensitivity.NORMAL))
+        assertFalse(planner.shows(cam(0, kind = CameraKind.SECTION), Sensitivity.NORMAL))
+    }
+
+    @Test fun `목록에서 사라진 카메라는 기록을 지우고, 남은 카메라 기록은 유지한다`() {
+        val a = cam(500, id = "a")
+        val b = cam(500, id = "b")
+        planner.plan(a, Sensitivity.NORMAL)
+        planner.plan(b, Sensitivity.NORMAL)
+
+        planner.forgetExcept(listOf(b))
+
+        assertNull(planner.plan(cam(480, id = "b"), Sensitivity.NORMAL))
+        assertEquals(Announcement("500m 앞 단속 카메라, 제한 80.", 500, false), planner.plan(cam(480, id = "a"), Sensitivity.NORMAL))
     }
 }
