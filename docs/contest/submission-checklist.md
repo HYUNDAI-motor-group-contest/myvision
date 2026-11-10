@@ -14,7 +14,7 @@
 ## 선택(가산점)
 - [ ] 시연 영상(형식 자유)
 - [ ] GitHub 공개 저장소 링크: https://github.com/HYUNDAI-motor-group-contest/myvision
-- [ ] `apk/최중현_MyVision_release.apk`(v1.1.0 태그에서 만든 release APK)
+- [ ] `apk/최중현_MyVision_release.apk`(1차 접수용은 커밋됨. v1.1.0 태그에서 다시 빌드해 교체)
 - [ ] README 4항목: 앱 이름과 한 줄 소개, 실행 방법, 테스트 환경과 설정, APK 위치
 
 ## 심사 일정
