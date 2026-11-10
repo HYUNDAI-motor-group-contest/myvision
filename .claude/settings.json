@@ -4,7 +4,10 @@
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./**/*.pem)",
-      "Read(./**/*.key)"
+      "Read(./**/*.key)",
+      "Read(./local.properties)",
+      "Read(./**/*.jks)",
+      "Read(./**/*.keystore)"
     ],
     "ask": [
       "Edit(/schema/**)",
@@ -16,13 +19,20 @@
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\" protect" }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\" protect"
+          }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\" commit", "timeout": 120 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\" commit",
+            "timeout": 600
+          }
         ]
       }
     ]
