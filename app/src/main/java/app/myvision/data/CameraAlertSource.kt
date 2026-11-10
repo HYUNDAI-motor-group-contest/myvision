@@ -11,7 +11,7 @@ interface CameraAlertSource {
 }
 
 /** 카메라 이벤트 → 가장 가까운 하나만 판단 → 말한다. 순수 Kotlin이라 Fake로 시험한다. 한 스레드에서만 부른다. */
-class CameraAlertRelay(private val sensitivity: () -> Sensitivity, private val speak: (String) -> Unit) {
+class CameraAlertRelay(val sensitivity: () -> Sensitivity, private val speak: (String) -> Unit) {
     private val planner = CameraAlertPlanner()
 
     /** 화면에 보여 줄 카메라를 돌려준다(없으면 null). */

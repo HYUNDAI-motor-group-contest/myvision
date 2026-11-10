@@ -15,7 +15,9 @@ import androidx.lifecycle.lifecycleScope
 import app.myvision.alert.CameraInfo
 import app.myvision.alert.Sensitivity
 import app.myvision.data.CameraAlertRelay
+import app.myvision.data.DemoCameraScript
 import app.myvision.data.DriverSwitcher
+import app.myvision.data.FakeCameraAlertSource
 import app.myvision.data.PleosCameraAlertSource
 import app.myvision.data.PleosVehicleGateway
 import app.myvision.data.ProfileRepository
@@ -46,6 +48,8 @@ class MainActivity : ComponentActivity() {
         var parked by mutableStateOf(false)
         var driving by mutableStateOf(false)
         var camera by mutableStateOf<CameraInfo?>(null)
+        var demoCamera by mutableStateOf<CameraInfo?>(null)
+        var demoRunning by mutableStateOf(false)
 
         // 장면 ②: 선택된 운전자의 민감도로 단속 카메라를 소리 먼저 안내한다(운전자 미선택이면 기본)
         val relay = CameraAlertRelay(
@@ -61,6 +65,22 @@ class MainActivity : ComponentActivity() {
                 // 빈 목록이 오지 않아도 갱신이 끊기면 패널을 내린다(시계는 화면 층에만, 판단 로직은 결정론 유지)
                 staleTimer?.cancel()
                 staleTimer = launch { delay(CAMERA_STALE_MS); camera = null }
+            }
+        }
+
+        // 예시 입력(시연용): 실제 내비와 섞이지 않게 별도 소스, 별도 relay(판단 기록 분리). 말하기와 민감도는 같다
+        val demoSource = FakeCameraAlertSource()
+        val demoRelay = CameraAlertRelay(relay.sensitivity, speaker::speak)
+        demoSource.start { demoCamera = demoRelay.onAlerts(it) }
+        val playDemo = {
+            demoRunning = true
+            lifecycleScope.launch {
+                try {
+                    DemoCameraScript.steps.forEach { demoSource.emit(*it.toTypedArray()); delay(DemoCameraScript.STEP_MS) }
+                } finally {
+                    demoCamera = null
+                    demoRunning = false
+                }
             }
         }
 
@@ -82,7 +102,9 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 Surface(Modifier.fillMaxSize()) {
                     // 안내 중에는 카메라 정보만 보인다(DESIGN.md: 주행 중 정보 2개 이하)
-                    camera?.let { CameraPanel(it) } ?: ProfileScreen(
+                    demoCamera?.let { CameraPanel(it, demo = true) }
+                        ?: camera?.let { CameraPanel(it, demo = false) }
+                        ?: ProfileScreen(
                         profiles = profiles,
                         selectedId = selectedId,
                         status = status,
@@ -101,6 +123,8 @@ class MainActivity : ComponentActivity() {
                             repo.saveSensitivity(p.id, s)
                             profiles = repo.load()
                         },
+                        demoRunning = demoRunning,
+                        onDemo = { playDemo() },
                         onSaveCurrent = {
                             val id = selectedId ?: return@ProfileScreen
                             lifecycleScope.launch {

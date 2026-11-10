@@ -34,6 +34,8 @@ fun ProfileScreen(
     driving: Boolean,
     onSelect: (Profile) -> Unit,
     onSensitivity: (Profile, Sensitivity) -> Unit,
+    demoRunning: Boolean,
+    onDemo: () -> Unit,
     onSaveCurrent: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -67,6 +69,13 @@ fun ProfileScreen(
             }
         }
         if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.headlineSmall)
+        // 내비 모의 주행 없이 장면 ②를 보이는 버튼. 가짜 데이터임을 버튼 글자로 늘 밝힌다
+        OutlinedButton(onClick = onDemo, enabled = !demoRunning, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {
+            Text(
+                if (demoRunning) "예시 입력(시연용) 재생 중" else "예시 카메라 입력(시연용)",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
         if (parked && selectedId != null) {
             Button(onClick = onSaveCurrent, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {
                 Text("지금 상태를 이 프로필로 저장", style = MaterialTheme.typography.titleLarge)
