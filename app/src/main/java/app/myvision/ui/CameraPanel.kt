@@ -17,9 +17,10 @@ import app.myvision.alert.CameraKind
  * 지점, 구간 시작: 제한속도 + 남은 거리. 구간 안: 제한속도 + 구간 평균속도.
  */
 @Composable
-fun CameraPanel(camera: CameraInfo) {
+fun CameraPanel(camera: CameraInfo, demo: Boolean) {
     val section = camera.kind == CameraKind.SECTION
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (demo) Text("예시 입력(시연용)", style = MaterialTheme.typography.titleLarge)
         Text(if (camera.kind == CameraKind.SPOT) "단속 카메라" else "구간단속", style = MaterialTheme.typography.headlineLarge)
         if (camera.speedLimit > 0) Text("제한 ${camera.speedLimit}km/h", style = MaterialTheme.typography.displayLarge)
         Text(
