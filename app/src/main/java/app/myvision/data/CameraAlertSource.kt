@@ -16,6 +16,7 @@ class CameraAlertRelay(private val sensitivity: () -> Sensitivity, private val s
 
     /** 화면에 보여 줄 카메라를 돌려준다(없으면 null). */
     fun onAlerts(cameras: List<CameraInfo>): CameraInfo? {
+        planner.forgetExcept(cameras)
         val nearest = cameras.minByOrNull { it.remainDistance } ?: return null
         val s = sensitivity()
         planner.plan(nearest, s)?.let { speak(it.text) }
