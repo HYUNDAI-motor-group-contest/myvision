@@ -12,8 +12,8 @@ android {
         applicationId = "app.myvision"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "1.0.0"
     }
 
     // release 서명: keystore와 비밀번호는 저장소 밖에 둔다(공개 저장소).
