@@ -9,7 +9,12 @@ package app.myvision.alert
  */
 enum class Sensitivity(val label: String, val distances: List<Int>, val maxOverSpeedAlerts: Int) {
     NORMAL("기본", listOf(500), 1),
-    OFTEN_MISSES("자주 놓침", listOf(1000, 500, 200), 2),
+    OFTEN_MISSES("자주 놓침", listOf(1000, 500, 200), 2);
+
+    companion object {
+        /** 저장된 이름을 읽는다. 없거나 모르는 값(옛 버전 등)은 기본. */
+        fun fromStored(name: String?): Sensitivity = entries.firstOrNull { it.name == name } ?: NORMAL
+    }
 }
 
 /** SPOT: 지점 단속, SECTION_START: 구간단속 시작점(지점처럼 거리로 안내), SECTION: 구간 안(평균속도로 판단). */

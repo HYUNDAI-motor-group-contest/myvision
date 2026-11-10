@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
         var selectedId by mutableStateOf<String?>(null)
         var status by mutableStateOf("")
         var parked by mutableStateOf(false)
+        var driving by mutableStateOf(false)
         var camera by mutableStateOf<CameraInfo?>(null)
 
         // 장면 ②: 선택된 운전자의 민감도로 단속 카메라를 소리 먼저 안내한다(운전자 미선택이면 기본)
@@ -63,10 +64,15 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        lifecycleScope.launch { parked = vehicle.snapshot().gear == Gear.PARK }
+        lifecycleScope.launch {
+            val gear = vehicle.snapshot().gear
+            parked = gear == Gear.PARK
+            driving = gear == Gear.NOT_PARK
+        }
         vehicle.observeGear { gear ->
             lifecycleScope.launch {
                 parked = gear == Gear.PARK
+                driving = gear == Gear.NOT_PARK
                 switcher.onGearChanged(gear)?.let { status = it }
             }
         }
@@ -81,6 +87,7 @@ class MainActivity : ComponentActivity() {
                         selectedId = selectedId,
                         status = status,
                         parked = parked,
+                        driving = driving,
                         onSelect = { p ->
                             selectedId = p.id
                             lifecycleScope.launch {
@@ -89,6 +96,10 @@ class MainActivity : ComponentActivity() {
                                     SwitchResult.WaitingForPark -> "정차 후 적용할게요. 기어를 P로 바꾸면 맞춰요."
                                 }
                             }
+                        },
+                        onSensitivity = { p, s ->
+                            repo.saveSensitivity(p.id, s)
+                            profiles = repo.load()
                         },
                         onSaveCurrent = {
                             val id = selectedId ?: return@ProfileScreen

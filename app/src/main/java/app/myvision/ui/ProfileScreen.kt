@@ -11,15 +11,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.myvision.alert.Sensitivity
 import app.myvision.domain.Profile
 
 /**
  * 운전자 선택 화면(DESIGN.md: 다크, 큰 글자, 깜빡임 없음, 색만으로 뜻 전달 금지 → 선택은 "선택됨" 글자로도).
- * 정차(P)가 아니면 저장 버튼을 숨겨 화면 정보를 줄인다.
+ * 정차(P)가 아니면 저장 버튼을 숨겨 화면 정보를 줄인다. 카메라 안내 스위치는 주행 중(D, R)에만 숨긴다
+ * (기어를 못 읽어도 바꿀 수 있게. 차량 제어가 아니라 앱 설정이라서).
  */
 @Composable
 fun ProfileScreen(
@@ -27,7 +31,9 @@ fun ProfileScreen(
     selectedId: String?,
     status: String,
     parked: Boolean,
+    driving: Boolean,
     onSelect: (Profile) -> Unit,
+    onSensitivity: (Profile, Sensitivity) -> Unit,
     onSaveCurrent: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -48,7 +54,18 @@ fun ProfileScreen(
                 }
             }
         }
-        Text("프로필 이름과 카메라 안내 설정은 예시예요", style = MaterialTheme.typography.bodyLarge)
+        Text("프로필 이름은 예시예요", style = MaterialTheme.typography.bodyLarge)
+        val selected = profiles.firstOrNull { it.id == selectedId }
+        if (selected != null && !driving) {
+            val often = selected.sensitivity == Sensitivity.OFTEN_MISSES
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Switch(
+                    checked = often,
+                    onCheckedChange = { onSensitivity(selected, if (it) Sensitivity.OFTEN_MISSES else Sensitivity.NORMAL) },
+                )
+                Text("${selected.name}: 단속 카메라를 자주 놓쳐요(더 일찍, 세 번 안내)", style = MaterialTheme.typography.titleLarge)
+            }
+        }
         if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.headlineSmall)
         if (parked && selectedId != null) {
             Button(onClick = onSaveCurrent, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {

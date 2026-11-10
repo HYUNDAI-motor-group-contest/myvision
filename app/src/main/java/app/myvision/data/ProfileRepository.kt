@@ -10,7 +10,7 @@ import app.myvision.domain.Profile
 class ProfileRepository(context: Context) {
     private val prefs = context.getSharedPreferences("profiles", Context.MODE_PRIVATE)
 
-    fun load(): List<Profile> = EXAMPLE_PROFILES.map { (id, name, sensitivity) ->
+    fun load(): List<Profile> = EXAMPLE_PROFILES.map { (id, name) ->
         Profile(
             id, name,
             CabinSettings(
@@ -20,7 +20,7 @@ class ProfileRepository(context: Context) {
                 seatHeat = get(id, "seatHeat") { getInt(it, 0) },
                 seatVent = get(id, "seatVent") { getInt(it, 0) },
             ),
-            sensitivity,
+            Sensitivity.fromStored(prefs.getString("$id.sensitivity", null)),
         )
     }
 
@@ -34,6 +34,10 @@ class ProfileRepository(context: Context) {
         }.apply()
     }
 
+    fun saveSensitivity(id: String, s: Sensitivity) {
+        prefs.edit().putString("$id.sensitivity", s.name).apply()
+    }
+
     private fun <T> get(id: String, key: String, read: SharedPreferences.(String) -> T): T? =
         "$id.$key".let { if (prefs.contains(it)) prefs.read(it) else null }
 
@@ -42,11 +46,7 @@ class ProfileRepository(context: Context) {
     }
 
     companion object {
-        /** 이름, 카메라 안내 민감도는 예시 데이터(화면에 "예시"로 표시). shortcut: 민감도는 고정값, 바꾸는 화면이 필요해지면 SharedPreferences에 저장한다 */
-        val EXAMPLE_PROFILES = listOf(
-            Triple("dad", "아빠", Sensitivity.NORMAL),
-            Triple("mom", "엄마", Sensitivity.NORMAL),
-            Triple("me", "나", Sensitivity.OFTEN_MISSES),
-        )
+        /** 이름은 예시 데이터(화면에 "예시"로 표시). 카메라 안내 민감도는 프로필마다 저장, 기본값은 '기본'. */
+        val EXAMPLE_PROFILES = listOf("dad" to "아빠", "mom" to "엄마", "me" to "나")
     }
 }
